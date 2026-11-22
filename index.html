@@ -251,6 +251,7 @@ El valor a cancelar es de **{valor}**, y lo puedes hacer de dos formas:
         <label class="lbl">Título<input type="text" id="title" maxlength="80" placeholder="Nombre de la asignatura"></label>
         <label class="lbl">Subtítulo (opcional)<input type="text" id="sub" maxlength="80" placeholder="Corte, grupo o semestre"></label>
         <label class="lbl">Docente (opcional)<input type="text" id="doc" maxlength="80" placeholder="Tu nombre"></label>
+        <label class="lbl">Encabezado del detalle (opcional)<input type="text" id="detTitle" maxlength="60" placeholder="Ej.: Detalle del tercer corte"><small>Aparece sobre las notas del Excel, debajo de la definitiva.</small></label>
         <label class="lbl">Clave adicional (opcional)<input type="text" id="clave" maxlength="40" placeholder="Palabra que das en clase" autocomplete="off"><small>Si la pones, el estudiante necesita cédula y clave. Protege mejor si publicas el enlace abiertamente.</small></label>
       </div>
       <label class="lbl">Mensaje para los estudiantes (opcional)<textarea id="note" maxlength="300" placeholder="Ejemplo: Si ves un error en tu nota, escríbeme antes del viernes."></textarea></label>
@@ -332,6 +333,7 @@ button:disabled{opacity:.6}
 .line b{font-variant-numeric:tabular-nums;text-align:right;overflow-wrap:anywhere}
 .why{margin:6px 0 0;font-size:.95rem;line-height:1.5;overflow-wrap:anywhere}
 .herowhy{margin:10px 2px 4px}
+.dt{margin:18px 0 2px;font-size:1rem;color:var(--muted);font-weight:700;letter-spacing:.02em}
 details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
 summary{cursor:pointer;font-weight:600}
 summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -406,6 +408,7 @@ __CORE__
     } else if(hb&&d.h===0){
       out.appendChild(el('p','habok','Tu '+String(pack.cols[hb.ci]).toLowerCase()+' es '+hnota+': aprobaste y no necesitas habilitar.'));
     }
+    if(pack.dt&&pack.cols.some(function(c,i){return i!==pack.hi}))out.appendChild(el('h3','dt',pack.dt));
     pack.cols.forEach(function(c,i){
       if(i===pack.hi)return;
       out.appendChild(row(c,d.v[i],d.c&&d.c[i]));
@@ -779,7 +782,7 @@ async function crearPack(people, meta, onProgress){
     done += chunk.length; if (onProgress) onProgress(done, people.length);
   }
   recs.sort(function(a, b){ return a.i < b.i ? -1 : a.i > b.i ? 1 : 0; });
-  return { v: 1, salt: salt, iter: ITER, k: !!meta.clave, r: recs, cols: meta.cols, hi: meta.hi, title: meta.title, sub: meta.sub, doc: meta.doc, note: meta.note, date: meta.date, how: meta.how || '', hab: meta.hab || null };
+  return { v: 1, salt: salt, iter: ITER, k: !!meta.clave, r: recs, cols: meta.cols, hi: meta.hi, title: meta.title, sub: meta.sub, doc: meta.doc, note: meta.note, date: meta.date, how: meta.how || '', dt: meta.dt || '', hab: meta.hab || null };
 }
 // </core>
 
@@ -973,6 +976,7 @@ async function crearPack(people, meta, onProgress){
       if (a.meta.asig && (!$('#title').value || $('#title').dataset.auto === '1')){ $('#title').value = smartTitle(a.meta.asig); $('#title').dataset.auto = '1'; }
       const sub = [a.meta.curso ? 'Curso ' + a.meta.curso : '', a.meta.conv ? smartTitle(a.meta.conv) : '', a.meta.grupo].filter(Boolean).join(' · ');
       if (sub && (!$('#sub').value || $('#sub').dataset.auto === '1')){ $('#sub').value = sub; $('#sub').dataset.auto = '1'; }
+      if (!$('#detTitle').value) $('#detTitle').value = 'Detalle del tercer corte';
       renderHi(); refresh();
     };
     rd.readAsArrayBuffer(file);
@@ -1093,7 +1097,7 @@ async function crearPack(people, meta, onProgress){
       cols: b.cols.map(function(c){ return c.label; }), hi: hiPos,
       title: $('#title').value.trim() || 'Consulta de notas', sub: $('#sub').value.trim(), doc: $('#doc').value.trim(), note: $('#note').value.trim(),
       how: S.notes ? $('#how').value.trim() : '',
-      hab: applyHab(b),
+      hab: applyHab(b), dt: $('#detTitle').value.trim(),
       date: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
     };
     try {
