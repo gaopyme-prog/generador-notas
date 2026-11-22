@@ -39,3 +39,13 @@ Ejemplo publicado con esta herramienta: https://gaopyme-prog.github.io/notas-esp
 ## Créditos
 Idea y dirección: **Omar Guerrero Avilés**, docente de UNIPAZ, Barrancabermeja. Desarrollado con apoyo de inteligencia artificial.
 Contacto: omar.guerreroav@unipaz.edu.co
+
+
+## Instalar en el computador (Windows), sin usar GitHub
+
+1. Descarga **Instalar-Notas-por-Cedula.exe** desde [Releases](../../releases/latest).
+2. Ábrelo. Si Windows avisa "protegió su PC", pulsa *Más información > Ejecutar de todas formas* (el programa no está firmado).
+3. Se crea un acceso directo en el escritorio. Úsalo igual que la página web: sube el Excel y el acta, genera la página.
+4. Pulsa **Guardar y publicar**: guarda la carpeta en *Documentos > Notas por Cédula* y abre Netlify Drop, donde arrastras la carpeta para obtener tu enlace (cuenta gratis; sin cuenta el enlace se borra a la hora).
+
+El instalador lo construye GitHub automáticamente (`.github/workflows/instalador.yml`) cada vez que se publica una versión (etiqueta `v1.0.0`, `v1.1.0`...).

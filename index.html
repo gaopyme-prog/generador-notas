@@ -306,8 +306,18 @@ El valor a cancelar es de **{valor}**, y lo puedes hacer de dos formas:
       </div>
       <div id="tryOut" class="tryout" aria-live="polite"></div>
 
-      <h3>Cómo compartirla con tus estudiantes</h3>
-      <ol class="how">
+      <div id="deskBox" hidden>
+        <h3>Publícala en internet</h3>
+        <div class="row"><button type="button" id="deskPub">Guardar y publicar</button><span id="deskMsg" class="hint" role="status"></span></div>
+        <ol class="how">
+          <li>Pulsa <b>Guardar y publicar</b>: se guarda tu página en la carpeta <i>Documentos &gt; Notas por Cédula</i> y se abre esa carpeta junto con <b>Netlify Drop</b>.</li>
+          <li>La primera vez, crea tu cuenta gratis en Netlify (con tu correo). Así tu enlace no se borra.</li>
+          <li>Arrastra la carpeta de tu curso a la página de Netlify. Te da un enlace: pégalo en AVAPAZ.</li>
+          <li>Cuando cambien las notas, genera la página otra vez y arrastra de nuevo la misma carpeta (Deploys &gt; arrastrar), el enlace sigue igual.</li>
+        </ol>
+      </div>
+      <h3 id="howT">Cómo compartirla con tus estudiantes</h3>
+      <ol class="how" id="howL">
         <li>Súbelo a <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a>: en un repositorio público, con el nombre <b>index.html</b>, y activa <i>Settings &gt; Pages</i>. Netlify Drop también sirve, pero sin cuenta el sitio se borra a la hora.</li>
         <li>Pega ese enlace en tu aula virtual o en el grupo del curso. Evita Google Drive: no muestra páginas HTML.</li>
         <li>Cuando cambien las notas, vuelve a subir el Excel o el acta, genera la página y reemplaza el archivo publicado.</li>
@@ -1339,7 +1349,14 @@ async function crearPack(people, meta, onProgress){
   $('#tryCed').addEventListener('keydown', function(e){ if (e.key === 'Enter') tryIt(); });
   $('#copy').addEventListener('click', copyCode);
   $('#dl').addEventListener('click', download);
-  if (location.protocol === 'file:'){ $('#dl').hidden = false; $('#saveHow').hidden = true; }
+  if (window.npcDesktop){
+    $('#deskBox').hidden = false; $('#howT').hidden = true; $('#howL').hidden = true; $('#saveHow').hidden = true; $('#copy').hidden = true;
+    $('#deskPub').addEventListener('click', async function(){
+      const slug = ($('#title').value || 'consulta').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'consulta';
+      try { const r = await window.npcDesktop.publicar(slug, S.html); $('#deskMsg').textContent = 'Guardado en: ' + r; }
+      catch(e){ $('#deskMsg').textContent = 'No se pudo guardar: ' + e.message; }
+    });
+  } else if (location.protocol === 'file:'){ $('#dl').hidden = false; $('#saveHow').hidden = true; }
 })();
 </script>
 

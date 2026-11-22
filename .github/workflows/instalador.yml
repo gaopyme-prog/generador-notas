@@ -1,0 +1,31 @@
+name: Instalador de Windows
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Preparar
+        shell: bash
+        run: cp index.html escritorio/index.html
+      - name: Construir instalador
+        working-directory: escritorio
+        run: |
+          npm install
+          npm run dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Instalar-Notas-por-Cedula
+          path: escritorio/dist/Instalar-Notas-por-Cedula.exe
+      - name: Publicar en Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: escritorio/dist/Instalar-Notas-por-Cedula.exe

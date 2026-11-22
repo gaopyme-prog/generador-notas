@@ -1,0 +1,17 @@
+{
+  "name": "notas-por-cedula",
+  "productName": "Notas por Cédula",
+  "version": "1.0.0",
+  "description": "Genera la página de consulta de notas por cédula para tus estudiantes",
+  "author": "Omar Guerrero Avilés",
+  "main": "main.js",
+  "scripts": { "start": "electron .", "dist": "electron-builder --win --publish never" },
+  "devDependencies": { "electron": "33.2.1", "electron-builder": "25.1.8" },
+  "build": {
+    "appId": "co.unipaz.notasporcedula",
+    "productName": "Notas por Cédula",
+    "files": ["main.js", "preload.js", "index.html"],
+    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
+    "nsis": { "oneClick": true, "perMachine": false, "createDesktopShortcut": true, "artifactName": "Instalar-Notas-por-Cedula.${ext}" }
+  }
+}
