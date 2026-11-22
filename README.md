@@ -34,7 +34,6 @@ Ejemplo publicado con esta herramienta: https://gaopyme-prog.github.io/notas-esp
 
 ## Archivos del repositorio
 - `index.html`: el generador.
-- `notas-por-cedula.html`: copia **antigua** del generador (sin el paso del acta y la habilitación). Puede borrarse; la herramienta vigente es `index.html`.
 
 ## Créditos
 Idea y dirección: **Omar Guerrero Avilés**, docente de UNIPAZ, Barrancabermeja. Desarrollado con apoyo de inteligencia artificial.
