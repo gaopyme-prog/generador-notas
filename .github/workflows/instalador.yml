@@ -2,7 +2,8 @@ name: Instalador de Windows
 on:
   workflow_dispatch:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths: ['index.html', 'escritorio/**', '.github/workflows/instalador.yml']
 permissions:
   contents: write
 jobs:
@@ -25,7 +26,9 @@ jobs:
           name: Instalar-Notas-por-Cedula
           path: escritorio/dist/Instalar-Notas-por-Cedula.exe
       - name: Publicar en Releases
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Instalador v1.0.${{ github.run_number }}
+          make_latest: true
           files: escritorio/dist/Instalar-Notas-por-Cedula.exe

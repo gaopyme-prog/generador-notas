@@ -48,4 +48,4 @@ Contacto: omar.guerreroav@unipaz.edu.co
 3. Se crea un acceso directo en el escritorio. Úsalo igual que la página web: sube el Excel y el acta, genera la página.
 4. Pulsa **Guardar y publicar**: guarda la carpeta en *Documentos > Notas por Cédula* y abre Netlify Drop, donde arrastras la carpeta para obtener tu enlace (cuenta gratis; sin cuenta el enlace se borra a la hora).
 
-El instalador lo construye GitHub automáticamente (`.github/workflows/instalador.yml`) cada vez que se publica una versión (etiqueta `v1.0.0`, `v1.1.0`...).
+El instalador lo construye GitHub automáticamente (`.github/workflows/instalador.yml`) cada vez que se cambia la herramienta, y deja el instalador nuevo en Releases.
