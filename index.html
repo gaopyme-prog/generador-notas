@@ -121,6 +121,10 @@ ol.how,ul.how{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap
 .mock .hero b{font:700 1.9rem/1 var(--font-display);font-variant-numeric:tabular-nums}
 .mock .line{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:5px 0;font-size:.92rem}
 .mock .line b{font-variant-numeric:tabular-nums}
+.cutrow{display:grid;grid-template-columns:120px minmax(0,1fr) minmax(0,1.3fr) 84px;gap:10px;align-items:end;padding:10px 0;border-bottom:1px solid var(--line)}
+.cutrow:last-child{border-bottom:0}
+.cutrow strong{padding-bottom:9px}
+@media (max-width:640px){.cutrow{grid-template-columns:minmax(0,1fr) 84px}.cutrow strong{grid-column:1/-1;padding-bottom:0}.cutrow label:nth-of-type(2){grid-column:1/-1}}
 .chk{display:flex;gap:10px;align-items:center;font-weight:600;cursor:pointer}
 .chk input{width:20px;height:20px;accent-color:var(--accent)}
 .mockwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;align-items:center}
@@ -185,7 +189,7 @@ ol.how,ul.how{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap
         <h3 style="margin-bottom:8px">Columnas que verán los estudiantes</h3>
         <div class="chips" id="chips"></div>
       </div>
-      <label class="lbl" style="max-width:330px">Columna destacada (opcional)<select id="hic"></select><small>Aparece grande, por ejemplo la definitiva.</small></label>
+      <label class="lbl" style="max-width:330px">Columna destacada (opcional)<select id="hic"></select><small>Aparece grande arriba, por ejemplo la definitiva del corte.</small></label>
       <div id="stats" class="msg ok"></div>
       <div id="warns"></div>
       <p class="hint">Esta es la lista completa que se cifra, con la cédula de cada estudiante. Compárala con tu archivo antes de generar.</p>
@@ -193,11 +197,21 @@ ol.how,ul.how{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap
     </div>
   </section>
 
-  <section class="step" id="sa" hidden>
+  <section class="step" id="sc" hidden>
     <div class="num">3</div>
     <div class="body">
+      <h2>Los tres cortes y sus porcentajes<span class="tag">Opcional</span></h2>
+      <p class="hint">Si tu Excel tiene una hoja por corte, elige de cada una la columna con la nota del corte. La página mostrará arriba el detalle del tercer corte y abajo el resumen con los tres cortes, sus porcentajes y la definitiva de la asignatura. La definitiva sale del acta en PDF (paso 4); si no la subes, se calcula con los porcentajes. Si solo tienes un corte, deja los otros en «no usar».</p>
+      <div id="cutRows" class="cuts"></div>
+      <div id="cutStat"></div>
+    </div>
+  </section>
+
+  <section class="step" id="sa" hidden>
+    <div class="num">4</div>
+    <div class="body">
       <h2>Acta en PDF y habilitación<span class="tag">Opcional</span></h2>
-      <p class="hint">Sube el acta en PDF: la nota definitiva se toma del acta (la cédula es la llave) y aparece de primera. Quien tenga menos de la nota mínima verá un aviso de habilitación con fechas, valor y pasos.</p>
+      <p class="hint">Sube el acta en PDF: la definitiva de la asignatura se toma del acta (la cédula es la llave) y se muestra en el resumen final. Quien tenga menos de la nota mínima verá el aviso de habilitación con fechas, valor y pasos.</p>
       <label class="drop small" id="dropA" for="pdfA">
         <input type="file" id="pdfA" accept=".pdf,application/pdf">
         <span class="drop-t">Elige el acta en PDF</span>
@@ -210,7 +224,6 @@ ol.how,ul.how{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap
       <div id="habBox" hidden style="display:flex;flex-direction:column;gap:14px">
         <div class="fields">
           <label class="lbl">Nota mínima para aprobar<input type="number" id="habMin" value="3" min="0" max="5" step="0.1"></label>
-          <label class="lbl">Columna que define si habilita<select id="habcol"></select><small>Se usa la nota tal como se muestra al estudiante.</small></label>
           <label class="lbl">Calendario de habilitación<input type="text" id="habFecha" maxlength="80" value="Del 3 al 5 de diciembre de 2026"></label>
           <label class="lbl">Valor a pagar<input type="text" id="habValor" maxlength="30" value="$109.000"></label>
         </div>
@@ -227,7 +240,7 @@ El valor a cancelar es de **{valor}**, y lo puedes hacer de dos formas:
   </section>
 
   <section class="step" id="sn" hidden>
-    <div class="num">4</div>
+    <div class="num">5</div>
     <div class="body">
       <h2>Observaciones del docente<span class="tag">Opcional</span></h2>
       <p class="hint">Sube un Word con un título por estudiante (Apellidos, Nombre) y debajo una tabla de tres columnas: Ítem, Nota y Razón. Cada estudiante verá solo su parte, junto a sus notas.</p>
@@ -244,14 +257,14 @@ El valor a cancelar es de **{valor}**, y lo puedes hacer de dos formas:
   </section>
 
   <section class="step" id="s3" hidden>
-    <div class="num">5</div>
+    <div class="num">6</div>
     <div class="body">
       <h2>Personaliza la página</h2>
       <div class="fields">
         <label class="lbl">Título<input type="text" id="title" maxlength="80" placeholder="Nombre de la asignatura"></label>
         <label class="lbl">Subtítulo (opcional)<input type="text" id="sub" maxlength="80" placeholder="Corte, grupo o semestre"></label>
         <label class="lbl">Docente (opcional)<input type="text" id="doc" maxlength="80" placeholder="Tu nombre"></label>
-        <label class="lbl">Encabezado del detalle (opcional)<input type="text" id="detTitle" maxlength="60" placeholder="Ej.: Detalle del tercer corte"><small>Aparece sobre las notas del Excel, debajo de la definitiva.</small></label>
+        <label class="lbl">Encabezado de la parte de arriba (opcional)<input type="text" id="detTitle" maxlength="70" placeholder="Ej.: Definitiva y detalle del tercer corte"><small>Aclara que lo de arriba es del tercer corte. Se llena solo cuando hay resumen.</small></label>
         <label class="lbl">Clave adicional (opcional)<input type="text" id="clave" maxlength="40" placeholder="Palabra que das en clase" autocomplete="off"><small>Si la pones, el estudiante necesita cédula y clave. Protege mejor si publicas el enlace abiertamente.</small></label>
       </div>
       <label class="lbl">Mensaje para los estudiantes (opcional)<textarea id="note" maxlength="300" placeholder="Ejemplo: Si ves un error en tu nota, escríbeme antes del viernes."></textarea></label>
@@ -263,7 +276,7 @@ El valor a cancelar es de **{valor}**, y lo puedes hacer de dos formas:
   </section>
 
   <section class="step" id="s4" hidden>
-    <div class="num">6</div>
+    <div class="num">7</div>
     <div class="body">
       <h2>Genera la página</h2>
       <div class="row"><button type="button" class="big" id="gen">Generar página de consulta</button></div>
@@ -333,7 +346,9 @@ button:disabled{opacity:.6}
 .line b{font-variant-numeric:tabular-nums;text-align:right;overflow-wrap:anywhere}
 .why{margin:6px 0 0;font-size:.95rem;line-height:1.5;overflow-wrap:anywhere}
 .herowhy{margin:10px 2px 4px}
-.dt{margin:18px 0 2px;font-size:1rem;color:var(--muted);font-weight:700;letter-spacing:.02em}
+.dt{margin:22px 0 8px;padding-top:14px;border-top:2px solid var(--line);font-size:1rem;color:var(--accent);font-weight:700;letter-spacing:.01em}
+.dt.first{margin-top:4px;padding-top:0;border-top:0}
+.hero.fin{margin-top:12px}
 details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
 summary{cursor:pointer;font-weight:600}
 summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -396,25 +411,29 @@ __CORE__
     var out=$('out');out.textContent='';out.hidden=false;
     if(!d){out.appendChild(el('p','err',msg));return}
     if(d.n)out.appendChild(el('p','who',d.n));
+    if(pack.dt&&pack.sum)out.appendChild(el('h3','dt first',pack.dt));
     if(pack.hi>=0&&pack.cols[pack.hi]!==undefined){
       var h=el('div','hero');h.appendChild(el('span','',pack.cols[pack.hi]));h.appendChild(el('b','',d.v[pack.hi]));out.appendChild(h);
       if(d.c&&d.c[pack.hi])out.appendChild(el('p','why herowhy',d.c[pack.hi]));
     }
-    var hb=pack.hab,hnota=hb?d.v[hb.ci]:'';
-    if(hb&&d.h===1){
-      var al=el('div','habalert');al.appendChild(el('b','','Debes presentar habilitación'));
-      al.appendChild(el('p','','Tu '+String(pack.cols[hb.ci]).toLowerCase()+' es '+hnota+' y la nota mínima para aprobar es '+hb.min+'.'));
-      out.appendChild(al);
-    } else if(hb&&d.h===0){
-      out.appendChild(el('p','habok','Tu '+String(pack.cols[hb.ci]).toLowerCase()+' es '+hnota+': aprobaste y no necesitas habilitar.'));
-    }
-    if(pack.dt&&pack.cols.some(function(c,i){return i!==pack.hi}))out.appendChild(el('h3','dt',pack.dt));
     pack.cols.forEach(function(c,i){
       if(i===pack.hi)return;
       out.appendChild(row(c,d.v[i],d.c&&d.c[i]));
     });
     (d.x||[]).forEach(function(r){out.appendChild(row(r[0],r[1],r[2]))});
-    if(hb&&d.h===1)out.appendChild(habCard(hb));
+    var sm=pack.sum,hb=pack.hab;
+    if(sm&&d.s){
+      out.appendChild(el('h3','dt',sm.t));
+      sm.ks.forEach(function(k,i){out.appendChild(row(k.l+' ('+k.w+' %)',d.s.k[i]))});
+      var f=el('div','hero fin');f.appendChild(el('span','',sm.fl));f.appendChild(el('b','',d.s.f));out.appendChild(f);
+      if(hb&&d.h===1){
+        var al=el('div','habalert');al.appendChild(el('b','','Debes presentar habilitación'));
+        al.appendChild(el('p','','Tu definitiva de la asignatura es '+d.s.f+' y la nota mínima para aprobar es '+hb.min+'.'));
+        out.appendChild(al);out.appendChild(habCard(hb));
+      } else if(hb&&d.h===0){
+        out.appendChild(el('p','habok','Aprobaste la asignatura: no necesitas habilitar.'));
+      }
+    }
   }
   $('f').addEventListener('submit',async function(e){
     e.preventDefault();
@@ -777,19 +796,19 @@ async function crearPack(people, meta, onProgress){
   const recs = []; let done = 0;
   for (let i = 0; i < people.length; i += 4){
     const chunk = people.slice(i, i + 4);
-    const res = await Promise.all(chunk.map(function(p){ return sellar(p.ced, meta.clave, salt, ITER, { n: p.name, v: p.vals, c: p.c, x: p.x, h: p.h }); }));
+    const res = await Promise.all(chunk.map(function(p){ return sellar(p.ced, meta.clave, salt, ITER, { n: p.name, v: p.vals, c: p.c, x: p.x, h: p.h, s: p.s }); }));
     res.forEach(function(x){ recs.push(x); });
     done += chunk.length; if (onProgress) onProgress(done, people.length);
   }
   recs.sort(function(a, b){ return a.i < b.i ? -1 : a.i > b.i ? 1 : 0; });
-  return { v: 1, salt: salt, iter: ITER, k: !!meta.clave, r: recs, cols: meta.cols, hi: meta.hi, title: meta.title, sub: meta.sub, doc: meta.doc, note: meta.note, date: meta.date, how: meta.how || '', dt: meta.dt || '', hab: meta.hab || null };
+  return { v: 1, salt: salt, iter: ITER, k: !!meta.clave, r: recs, cols: meta.cols, hi: meta.hi, title: meta.title, sub: meta.sub, doc: meta.doc, note: meta.note, date: meta.date, how: meta.how || '', dt: meta.dt || '', sum: meta.sum || null, hab: meta.hab || null };
 }
 // </core>
 
 (function(){
   const $ = function(s){ return document.querySelector(s); };
-  const ACTA_LABEL = 'Nota definitiva';
-  const S = { acta: null, habCol: -1, wb: null, file: '', rows: [], hr: 0, heads: [], idCol: -1, nameCol: -1, show: new Set(), hi: -1, pack: null, html: '' };
+  const CUT_NAMES = ['Primer corte', 'Segundo corte', 'Tercer corte'];
+  const S = { acta: null, cuts: [{ sheet: '', col: -1, w: 30 }, { sheet: '', col: -1, w: 30 }, { sheet: '', col: -1, w: 40 }], cache: {}, wb: null, file: '', rows: [], hr: 0, heads: [], idCol: -1, nameCol: -1, show: new Set(), hi: -1, pack: null, html: '' };
 
   function showErr(msg){ const e = $('#loadErr'); e.textContent = msg; e.hidden = !msg; }
   function invalidate(){ $('#resultBox').hidden = true; S.pack = null; }
@@ -880,16 +899,18 @@ async function crearPack(people, meta, onProgress){
       if (id >= 0 && buildPeople(rows, hr, id, -1, [], 'auto', '.').people.length > 0) pick = n;
     });
     sel.value = pick;
-    ['#s2', '#sa', '#sn', '#s3', '#s4'].forEach(function(s){ $(s).hidden = false; });
+    ['#s2', '#sc', '#sa', '#sn', '#s3', '#s4'].forEach(function(s){ $(s).hidden = false; });
     clearNotes();
     $('#mock').hidden = true;
     loadSheet(pick);
+    guessCuts(); refresh();
   }
 
   function loadSheet(name){
     S.rows = sheetRows(S.wb.Sheets[name]);
     S.hr = detectHeaderRow(S.rows);
     $('#hr').value = S.hr + 1;
+    S.cache = {};
     recompute(true);
   }
 
@@ -900,7 +921,6 @@ async function crearPack(people, meta, onProgress){
       S.nameCol = guessNameCol(S.heads, S.idCol);
       S.show = new Set(S.heads.filter(function(h){ return h.idx !== S.idCol && h.idx !== S.nameCol && !h.generic && !h.skip; }).map(function(h){ return h.idx; }));
       S.hi = guessHiCol(S.heads.filter(function(h){ return S.show.has(h.idx); }));
-      if (S.acta) S.hi = -2;
     }
     renderControls(); refresh();
   }
@@ -927,41 +947,133 @@ async function crearPack(people, meta, onProgress){
   function renderHi(){
     const hic = $('#hic'); hic.textContent = ''; opt(hic, '-1', 'Ninguna', S.hi < 0);
     S.heads.forEach(function(h){ if (S.show.has(h.idx) && h.idx !== S.idCol && h.idx !== S.nameCol) opt(hic, h.idx, h.label, h.idx === S.hi); });
-    if (S.acta) opt(hic, '-2', ACTA_LABEL + ' (del acta)', S.hi === -2);
   }
 
   function shownCols(){ return S.heads.filter(function(h){ return S.show.has(h.idx) && h.idx !== S.idCol && h.idx !== S.nameCol; }); }
   function currentBuild(){
-    let cols = shownCols();
+    const cols = shownCols();
     const res = S.idCol >= 0 ? buildPeople(S.rows, S.hr, S.idCol, S.nameCol, cols.map(function(c){ return c.idx; }), $('#dec').value, $('#sep').value) : { people: [], blank: 0, invalid: 0, dups: [] };
-    // Nota definitiva tomada del acta en PDF, emparejada por cédula.
-    let acta = null;
-    if (S.acta && res.people.length){
-      const map = new Map(); S.acta.people.forEach(function(a){ map.set(cleanCed(a.ced), a); });
-      const d = $('#dec').value === 'auto' ? S.acta.dec : +$('#dec').value;
-      const have = new Set(); acta = { matched: 0, noActa: [], noExcel: [], texto: 0 };
-      res.people.forEach(function(p){
-        const a = map.get(p.ced);
-        if (a){ have.add(p.ced); acta.matched++; if (typeof a.val !== 'number') acta.texto++; }
-        else acta.noActa.push(p.name || p.ced);
-        p.vals.push(a ? fmtVal(a.val, d, $('#sep').value) : '—');
-      });
-      S.acta.people.forEach(function(a){ if (!have.has(cleanCed(a.ced))) acta.noExcel.push(a.name || a.ced); });
-      cols = cols.concat([{ idx: -2, label: ACTA_LABEL }]);
-    }
+    // Resumen: notas de los tres cortes (de las hojas del Excel) y definitiva (del acta, o calculada con los porcentajes).
+    const sum = buildSummary(res);
     const notes = S.notes && res.people.length ? attachNotes(res.people, cols.map(function(c){ return c.label; }), S.heads.map(function(h){ return h.label; }), S.notes.blocks) : null;
-    return { cols: cols, res: res, notes: notes, acta: acta };
+    return { cols: cols, res: res, notes: notes, sum: sum };
   }
 
 
+  // ---- Los tres cortes, el acta y la habilitación ----
+  function toNum(v){
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string' && /^\s*-?\d+([.,]\d+)?\s*$/.test(v)) return parseFloat(v.replace(',', '.'));
+    return NaN;
+  }
+  function rawMap(rows, hr, idCol, col){
+    const m = new Map(); let end = rows.length;
+    for (let r = hr + 1; r < rows.length; r++){ if (rows[r] && rows[r].some(function(c){ return typeof c === 'string' && /^\s*firma\b/i.test(c); })){ end = r; break; } }
+    for (let r = hr + 1; r < end; r++){ const row = rows[r]; if (!row) continue; const ced = cleanCed(row[idCol]); if (ced.length < 5 || m.has(ced)) continue; m.set(ced, row[col]); }
+    return m;
+  }
+  function sheetInfo(name){
+    if (!name || !S.wb || !S.wb.Sheets[name]) return null;
+    if (name === $('#sheet').value) return { rows: S.rows, hr: S.hr, heads: S.heads, idCol: S.idCol };
+    if (!S.cache[name]){ const rows = sheetRows(S.wb.Sheets[name]); const hr = detectHeaderRow(rows); const heads = getHeaders(rows, hr); S.cache[name] = { rows: rows, hr: hr, heads: heads, idCol: guessIdCol(heads) }; }
+    return S.cache[name];
+  }
+  function candCols(info){
+    const nm = guessNameCol(info.heads, info.idCol);
+    return info.heads.filter(function(h){ return h.idx !== info.idCol && h.idx !== nm && !h.generic && !h.skip; });
+  }
+  function defaultCol(info){
+    if (!info) return -1;
+    const c = candCols(info); if (!c.length) return -1;
+    const g = guessHiCol(c); return g >= 0 ? g : c[c.length - 1].idx;
+  }
+  function guessCuts(){
+    S.cache = {};
+    const main = $('#sheet').value, names = S.wb.SheetNames;
+    const RE = [/(^|\D)(1|primer[o]?|1er|1ro)(\D|$)/i, /(^|\D)(2|segund[o]?|2do)(\D|$)/i, /(^|\D)(3|tercer[o]?|3er)(\D|$)/i];
+    S.cuts.forEach(function(c, i){
+      const found = names.find(function(n){ return /corte/i.test(n) && RE[i].test(n); });
+      c.sheet = found || (i === 2 ? main : '');
+      const info = sheetInfo(c.sheet);
+      c.col = i === 2 && c.sheet === main && S.hi >= 0 ? S.hi : defaultCol(info);
+    });
+    renderCuts();
+  }
+  function renderCuts(){
+    const box = $('#cutRows'); box.textContent = '';
+    if (!S.wb) return;
+    S.cuts.forEach(function(c, i){
+      function cell(caption, node){ const l = document.createElement('label'); l.className = 'lbl'; l.appendChild(document.createTextNode(caption)); l.appendChild(node); return l; }
+      const row = document.createElement('div'); row.className = 'cutrow';
+      const t = document.createElement('strong'); t.textContent = CUT_NAMES[i];
+      const sh = document.createElement('select'); opt(sh, '', '— no usar —', !c.sheet); S.wb.SheetNames.forEach(function(n){ opt(sh, n, n, n === c.sheet); });
+      const co = document.createElement('select'); const info = sheetInfo(c.sheet); const cands = info ? candCols(info) : [];
+      if (!cands.length) opt(co, '-1', '—', true);
+      cands.forEach(function(h){ opt(co, h.idx, h.label, h.idx === c.col); });
+      const w = document.createElement('input'); w.type = 'number'; w.min = 0; w.max = 100; w.step = 1; w.value = c.w;
+      sh.addEventListener('change', function(){ c.sheet = sh.value; c.col = defaultCol(sheetInfo(c.sheet)); renderCuts(); invalidate(); refresh(); });
+      co.addEventListener('change', function(){ c.col = +co.value; invalidate(); refresh(); });
+      w.addEventListener('input', function(){ c.w = parseFloat(w.value) || 0; invalidate(); refresh(); });
+      row.appendChild(t); row.appendChild(cell('Hoja', sh)); row.appendChild(cell('Columna con la nota del corte', co)); row.appendChild(cell('Peso (%)', w));
+      box.appendChild(row);
+    });
+  }
+  function buildSummary(res){
+    const cuts = [];
+    S.cuts.forEach(function(c, i){
+      const info = sheetInfo(c.sheet);
+      if (info && c.col >= 0 && info.idCol >= 0) cuts.push({ i: i, w: c.w, info: info, col: c.col });
+    });
+    const all3 = cuts.length === 3;
+    if (!res.people.length || !(S.acta || all3)) return null;
+    const sep = $('#sep').value, dsel = $('#dec').value;
+    const maps = cuts.map(function(c){ return { m: rawMap(c.info.rows, c.info.hr, c.info.idCol, c.col), d: colMode(c.info.rows, c.info.hr, c.col, dsel) }; });
+    const amap = new Map(); if (S.acta) S.acta.people.forEach(function(a){ amap.set(cleanCed(a.ced), a); });
+    const fd = dsel === 'auto' ? (S.acta ? S.acta.dec : 1) : +dsel;
+    const W = cuts.reduce(function(a, c){ return a + c.w; }, 0);
+    const sum = { cfg: { t: 'Resumen de la asignatura', fl: 'Definitiva de la asignatura', ks: cuts.map(function(c){ return { l: CUT_NAMES[c.i], w: c.w }; }) },
+      cuts: cuts, W: W, usesActa: !!S.acta, missing: cuts.map(function(){ return 0; }), mism: [], noActa: [], noExcel: [], matched: 0, texto: 0 };
+    const have = new Set();
+    res.people.forEach(function(p){
+      const raws = maps.map(function(x){ return x.m.get(p.ced); });
+      raws.forEach(function(r, j){ if (r === undefined || isBlank(r)) sum.missing[j]++; });
+      const ks = raws.map(function(r, j){ return fmtVal(r === undefined ? '' : r, maps[j].d, sep); });
+      const nums = raws.map(toNum);
+      let calc = null;
+      if (all3 && W > 0 && nums.every(function(n){ return isFinite(n); })) calc = nums.reduce(function(a, n, j){ return a + n * cuts[j].w; }, 0) / W;
+      let f = '—', fv = NaN;
+      if (S.acta){
+        const a = amap.get(p.ced);
+        if (a){
+          have.add(p.ced); sum.matched++; f = fmtVal(a.val, fd, sep);
+          if (typeof a.val === 'number'){ fv = a.val; if (calc !== null && Math.abs(parseFloat(fmtVal(calc, fd, '.')) - a.val) > 0.051) sum.mism.push((p.name || p.ced) + ' (cálculo ' + fmtVal(calc, fd, sep) + ', acta ' + f + ')'); }
+          else sum.texto++;
+        } else sum.noActa.push(p.name || p.ced);
+      } else if (calc !== null){ f = fmtVal(calc, fd, sep); fv = parseFloat(fmtVal(calc, fd, '.')); sum.matched++; }
+      p.s = { k: ks, f: f }; p.fv = fv;
+    });
+    if (S.acta) S.acta.people.forEach(function(a){ if (!have.has(cleanCed(a.ced))) sum.noExcel.push(a.name || a.ced); });
+    return sum;
+  }
+  function renderCutStat(b){
+    const box = $('#cutStat'); box.textContent = '';
+    function msg(cls, t){ const d = document.createElement('div'); d.className = 'msg ' + cls; d.style.marginTop = '8px'; d.textContent = t; box.appendChild(d); }
+    const sm = b.sum, n = b.res.people.length;
+    const conf = S.cuts.filter(function(c){ const i = sheetInfo(c.sheet); return i && c.col >= 0; }).length;
+    if (!sm){ if (conf >= 2 && !S.acta) msg('warn', 'Para calcular la definitiva sin el acta se necesitan los tres cortes. Completa los que faltan o sube el acta en el paso 4.'); return; }
+    const pesos = sm.cuts.map(function(c){ return c.w; });
+    msg('ok', 'Resumen listo: ' + sm.cuts.map(function(c){ return CUT_NAMES[c.i].toLowerCase() + ' ' + c.w + ' %'; }).join(', ') + '.' + (sm.usesActa ? '' : ' La definitiva se calcula con los porcentajes.'));
+    if (sm.cuts.length === 3 && Math.abs(sm.W - 100) > 0.01) msg('warn', 'Los porcentajes suman ' + sm.W + ' %, no 100 %. La definitiva se calcula dividiendo entre esa suma.');
+    sm.missing.forEach(function(m, j){ if (m) msg('warn', m + (m === 1 ? ' estudiante no tiene' : ' estudiantes no tienen') + ' nota del ' + CUT_NAMES[sm.cuts[j].i].toLowerCase() + ' en esa hoja (verán «—»).'); });
+    if (!sm.usesActa && sm.matched < n) msg('warn', (n - sm.matched) + (n - sm.matched === 1 ? ' estudiante no tiene los tres cortes y verá' : ' estudiantes no tienen los tres cortes y verán') + ' «—» en la definitiva.');
+  }
   // ---- Acta en PDF y habilitación ----
   function clearActa(){
     S.acta = null; $('#pdfA').value = ''; $('#actaClear').hidden = true; $('#actaStat').hidden = true; $('#actaWarns').textContent = '';
-    if (S.hi === -2) S.hi = guessHiCol(S.heads.filter(function(h){ return S.show.has(h.idx); }));
   }
   function onActa(file){
     const st = $('#actaStat');
-    function fail(t){ clearActa(); st.hidden = false; st.className = 'msg bad'; st.textContent = t; renderHi(); refresh(); }
+    function fail(t){ clearActa(); st.hidden = false; st.className = 'msg bad'; st.textContent = t; refresh(); }
     if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf'){ fail('Ese archivo no es un PDF. Aquí va el acta en PDF.'); return; }
     const rd = new FileReader();
     rd.onerror = function(){ fail('No se pudo leer el archivo.'); };
@@ -972,12 +1084,11 @@ async function crearPack(people, meta, onProgress){
       const a = parseActa(lines);
       if (!a.people.length){ fail('No encontré estudiantes en ese PDF. Debe ser el acta con cédula, nombre y nota en texto. Si es una foto o un escaneo, no se puede leer.'); return; }
       S.acta = { people: a.people, dec: a.dec, comma: a.comma, meta: a.meta, expected: a.expected, file: file.name };
-      S.hi = -2; S.habCol = -2; $('#habOn').checked = true; $('#actaClear').hidden = false;
+      $('#habOn').checked = true; $('#actaClear').hidden = false;
       if (a.meta.asig && (!$('#title').value || $('#title').dataset.auto === '1')){ $('#title').value = smartTitle(a.meta.asig); $('#title').dataset.auto = '1'; }
       const sub = [a.meta.curso ? 'Curso ' + a.meta.curso : '', a.meta.conv ? smartTitle(a.meta.conv) : '', a.meta.grupo].filter(Boolean).join(' · ');
       if (sub && (!$('#sub').value || $('#sub').dataset.auto === '1')){ $('#sub').value = sub; $('#sub').dataset.auto = '1'; }
-      if (!$('#detTitle').value) $('#detTitle').value = 'Detalle del tercer corte';
-      renderHi(); refresh();
+      refresh();
     };
     rd.readAsArrayBuffer(file);
   }
@@ -987,44 +1098,35 @@ async function crearPack(people, meta, onProgress){
     function warn(t){ const d = document.createElement('div'); d.className = 'msg warn'; d.style.marginTop = '8px'; d.textContent = t; w.appendChild(d); }
     function some(list, n){ return list.slice(0, n).join('; ') + (list.length > n ? ' y ' + (list.length - n) + ' más' : ''); }
     st.hidden = false;
-    const r = b.acta, n = b.res.people.length;
+    const r = b.sum, n = b.res.people.length;
     if (!r){ st.className = 'msg bad'; st.textContent = 'Primero carga estudiantes en el paso 2.'; return; }
     st.className = r.matched ? 'msg ok' : 'msg bad';
-    st.textContent = 'Acta con ' + S.acta.people.length + (S.acta.people.length === 1 ? ' estudiante' : ' estudiantes') + ' · ' + r.matched + ' de ' + n + ' del Excel tienen nota definitiva.';
+    st.textContent = 'Acta con ' + S.acta.people.length + (S.acta.people.length === 1 ? ' estudiante' : ' estudiantes') + ' · ' + r.matched + ' de ' + n + ' del Excel tienen definitiva en el acta.';
     if (!r.matched) warn('Ninguna cédula del acta coincide con la hoja del Excel. Revisa que sean del mismo grupo.');
     if (r.noActa.length && r.matched) warn('En el Excel pero no en el acta (verán «—» en la definitiva y sin aviso de habilitación): ' + some(r.noActa, 4) + '.');
     if (r.noExcel.length && r.matched) warn('En el acta pero no en el Excel (no podrán consultar): ' + some(r.noExcel, 4) + '.');
     if (r.texto) warn(r.texto + (r.texto === 1 ? ' estudiante tiene' : ' estudiantes tienen') + ' una nota que no es número en el acta (por ejemplo NP). No se les muestra aviso de habilitación; revisa su caso.');
+    if (r.mism.length) warn('Con los porcentajes el cálculo no coincide con el acta en: ' + some(r.mism, 3) + '. A los estudiantes se les muestra la nota del acta; revisa si el Excel está completo.');
     if (S.acta.expected !== null && S.acta.expected !== S.acta.people.length) warn('El acta dice ' + S.acta.expected + ' estudiantes y leí ' + S.acta.people.length + '.');
   }
-  function renderHabCols(b){
-    const s = $('#habcol'); s.textContent = '';
-    b.cols.forEach(function(c){ opt(s, c.idx, c.label + (c.idx === -2 ? ' (del acta)' : ''), false); });
-    let pick = S.habCol;
-    if (!b.cols.some(function(c){ return c.idx === pick; })) pick = S.acta ? -2 : (b.cols.some(function(c){ return c.idx === S.hi; }) ? S.hi : (b.cols.length ? b.cols[b.cols.length - 1].idx : -1));
-    S.habCol = pick; s.value = String(pick);
-  }
-  // Marca quién debe habilitar y devuelve la configuración que viaja en la página (o null si no se usa).
+  // Marca quién debe habilitar según la definitiva y devuelve la configuración que viaja en la página (o null si no se usa).
   function applyHab(b){
     const on = $('#habOn').checked; $('#habBox').hidden = !on;
     b.res.people.forEach(function(p){ delete p.h; });
     if (!on) return null;
-    renderHabCols(b);
     const cnt = $('#habCount'), prev = $('#habPrev'); prev.textContent = '';
     const min = parseFloat(String($('#habMin').value).replace(',', '.'));
-    const pos = b.cols.findIndex(function(c){ return c.idx === S.habCol; });
-    if (!isFinite(min) || pos < 0){ cnt.className = 'msg bad'; cnt.textContent = 'Escribe la nota mínima y elige la columna que define si habilita.'; return null; }
+    if (!b.sum){ cnt.className = 'msg bad'; cnt.textContent = 'Para el aviso de habilitación sube el acta (paso 4) o configura los tres cortes (paso 3). La página necesita la definitiva de la asignatura.'; return null; }
+    if (!isFinite(min)){ cnt.className = 'msg bad'; cnt.textContent = 'Escribe la nota mínima para aprobar.'; return null; }
     let bajo = 0, ok = 0, sin = 0;
     b.res.people.forEach(function(p){
-      const v = parseFloat(String(p.vals[pos]).replace(',', '.'));
-      if (!isFinite(v)){ sin++; return; }
-      p.h = v < min ? 1 : 0; if (p.h) bajo++; else ok++;
+      if (!isFinite(p.fv)){ sin++; return; }
+      p.h = p.fv < min ? 1 : 0; if (p.h) bajo++; else ok++;
     });
     cnt.className = bajo ? 'msg warn' : 'msg ok';
-    cnt.textContent = bajo + (bajo === 1 ? ' estudiante debe' : ' estudiantes deben') + ' habilitar (menos de ' + min.toFixed(1) + '); ' + ok + ' aprueban' + (sin ? '; ' + sin + ' sin nota numérica (no verán el aviso)' : '') + '.';
-    const sep = $('#sep').value;
+    cnt.textContent = bajo + (bajo === 1 ? ' estudiante debe' : ' estudiantes deben') + ' habilitar (definitiva menor a ' + min.toFixed(1) + '); ' + ok + ' aprueban' + (sin ? '; ' + sin + ' sin definitiva numérica (no verán el aviso)' : '') + '.';
     const hab = {
-      min: min.toFixed(1).replace('.', sep), ci: pos,
+      min: min.toFixed(1).replace('.', $('#sep').value),
       fecha: $('#habFecha').value.trim(), valor: $('#habValor').value.trim(),
       pasos: $('#habPasos').value.split(/\n/).map(function(t){ return t.trim(); }).filter(Boolean),
       fin: $('#habFin').value.trim()
@@ -1081,7 +1183,11 @@ async function crearPack(people, meta, onProgress){
     t.appendChild(tb);
     $('#gen').disabled = !(n && b.cols.length);
     renderNotes(b);
+    renderCutStat(b);
     renderActa(b);
+    const dt = $('#detTitle');
+    if (b.sum && !dt.value && dt.dataset.auto !== '0'){ dt.value = 'Definitiva y detalle del tercer corte'; dt.dataset.auto = '1'; }
+    if (!b.sum && dt.dataset.auto === '1'){ dt.value = ''; }
     applyHab(b);
   }
 
@@ -1097,7 +1203,7 @@ async function crearPack(people, meta, onProgress){
       cols: b.cols.map(function(c){ return c.label; }), hi: hiPos,
       title: $('#title').value.trim() || 'Consulta de notas', sub: $('#sub').value.trim(), doc: $('#doc').value.trim(), note: $('#note').value.trim(),
       how: S.notes ? $('#how').value.trim() : '',
-      hab: applyHab(b), dt: $('#detTitle').value.trim(),
+      hab: applyHab(b), dt: $('#detTitle').value.trim(), sum: b.sum ? b.sum.cfg : null,
       date: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
     };
     try {
@@ -1184,16 +1290,16 @@ async function crearPack(people, meta, onProgress){
   $('#sep').addEventListener('change', refresh);
   $('#title').addEventListener('input', function(e){ e.target.dataset.auto = '0'; });
   $('#sub').addEventListener('input', function(e){ e.target.dataset.auto = '0'; });
-  ['#s3', '#sn', '#sa'].forEach(function(s){ $(s).addEventListener('input', invalidate); });
+  ['#s3', '#sn', '#sa', '#sc'].forEach(function(s){ $(s).addEventListener('input', invalidate); });
   (function(){ const st = document.createElement('style'); st.textContent = HAB_CSS; document.head.appendChild(st); })();
   $('#pdfA').addEventListener('change', function(e){ if (e.target.files[0]) onActa(e.target.files[0]); });
-  $('#actaClear').addEventListener('click', function(){ clearActa(); renderHi(); refresh(); });
+  $('#actaClear').addEventListener('click', function(){ clearActa(); refresh(); });
   const dropA = $('#dropA');
   ['dragenter', 'dragover'].forEach(function(ev){ dropA.addEventListener(ev, function(e){ e.preventDefault(); dropA.classList.add('over'); }); });
   ['dragleave', 'drop'].forEach(function(ev){ dropA.addEventListener(ev, function(e){ e.preventDefault(); dropA.classList.remove('over'); }); });
   dropA.addEventListener('drop', function(e){ const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) onActa(f); });
   $('#habOn').addEventListener('change', function(){ invalidate(); applyHab(currentBuild()); });
-  $('#habcol').addEventListener('change', function(e){ S.habCol = +e.target.value; invalidate(); applyHab(currentBuild()); });
+  $('#detTitle').addEventListener('input', function(e){ e.target.dataset.auto = '0'; });
   ['#habMin', '#habFecha', '#habValor', '#habPasos', '#habFin'].forEach(function(id){ $(id).addEventListener('input', function(){ invalidate(); applyHab(currentBuild()); }); });
   $('#docx').addEventListener('change', function(e){ if (e.target.files[0]) onDocx(e.target.files[0]); });
   $('#docxClear').addEventListener('click', function(){ clearNotes(); refresh(); });

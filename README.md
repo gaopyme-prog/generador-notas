@@ -16,13 +16,14 @@ Publicar las notas de un curso **de forma rápida y privada**, sin exponer las c
 - Opcionalmente se agrega una **clave del curso**, de modo que se necesitan cédula y clave.
 - Cada estudiante ve solo su resultado; no hay comparación con el grupo ni nombres de compañeros.
 
-## ¿Cómo se usa? (6 pasos en pantalla)
+## ¿Cómo se usa? (7 pasos en pantalla)
 1. **Suba su Excel o el acta en PDF** (.xlsx, .xls, .csv o PDF del acta de UNIPAZ). Puede **probar con un ejemplo**.
 2. **Elija qué se muestra:** hoja, fila de títulos, columna de la cédula, columna del nombre (opcional), columnas visibles y columna destacada (por ejemplo, la definitiva).
-3. **Acta en PDF y habilitación (opcional):** suba el acta en PDF. La **nota definitiva se toma del acta** (la cédula es la llave) y aparece de primera. Quien tenga **menos de la nota mínima** (por defecto 3,0) ve el aviso *Debes presentar habilitación* y una imagen con la ruta: calendario, valor a pagar y pasos. Quien aprueba ve que no necesita habilitar. Sobre las notas del Excel aparece un encabezado editable (por ejemplo, «Detalle del tercer corte»). Se pueden editar la nota mínima, el calendario, el valor, los pasos y el mensaje final. La herramienta avisa si hay estudiantes que están en el Excel pero no en el acta, o al revés, y si alguna nota del acta no es numérica (por ejemplo NP): a esos no se les muestra el aviso.
-4. **Observaciones del docente (opcional):** suba un Word con un título por estudiante y una tabla Ítem / Nota / Razón; cada estudiante verá su retroalimentación junto a sus notas.
-5. **Personalice la página:** título, subtítulo, docente, clave adicional, mensaje para los estudiantes, decimales y separador decimal.
-6. **Genere la página:** descargue el archivo `.html` (o copie el código) y **pruébela** antes de compartirla.
+3. **Los tres cortes y sus porcentajes (opcional):** si el Excel tiene una hoja por corte, elija de cada una la columna con la nota del corte y su peso (por defecto 30 %, 30 % y 40 %). La página muestra **arriba** la definitiva y el detalle del tercer corte, y **abajo** un resumen con las notas de los tres cortes, la definitiva de la asignatura y si debe o no habilitar.
+4. **Acta en PDF y habilitación (opcional):** suba el acta en PDF. La **definitiva de la asignatura se toma del acta** (la cédula es la llave); si no hay acta, se calcula con los porcentajes. Quien tenga **menos de la nota mínima** (por defecto 3,0) ve *Debes presentar habilitación* y una imagen con la ruta: calendario, valor a pagar y pasos; quien aprueba ve que no necesita habilitar. Se pueden editar la nota mínima, el calendario, el valor, los pasos y el mensaje final. La herramienta avisa si hay estudiantes que están en el Excel pero no en el acta (o al revés), si el cálculo con porcentajes no coincide con el acta, y si alguna nota del acta no es numérica (por ejemplo NP): a esos no se les muestra el aviso.
+5. **Observaciones del docente (opcional):** suba un Word con un título por estudiante y una tabla Ítem / Nota / Razón; cada estudiante verá su retroalimentación junto a sus notas.
+6. **Personalice la página:** título, subtítulo, docente, clave adicional, mensaje para los estudiantes, decimales y separador decimal.
+7. **Genere la página:** descargue el archivo `.html` (o copie el código) y **pruébela** antes de compartirla.
 
 ## Cómo publicarla
 1. Cree un repositorio público en GitHub y suba el archivo generado con el nombre `index.html`.
