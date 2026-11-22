@@ -124,7 +124,8 @@ ol.how,ul.how{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap
 .cutrow{display:grid;grid-template-columns:120px minmax(0,1fr) minmax(0,1.3fr) 84px;gap:10px;align-items:end;padding:10px 0;border-bottom:1px solid var(--line)}
 .cutrow:last-child{border-bottom:0}
 .cutrow strong{padding-bottom:9px}
-@media (max-width:640px){.cutrow{grid-template-columns:minmax(0,1fr) 84px}.cutrow strong{grid-column:1/-1;padding-bottom:0}.cutrow label:nth-of-type(2){grid-column:1/-1}}
+.cutrow.fromacta{grid-template-columns:minmax(0,1fr) 110px}
+@media (max-width:640px){.cutrow,.cutrow.fromacta{grid-template-columns:minmax(0,1fr) 84px}.cutrow strong{grid-column:1/-1;padding-bottom:0}.cutrow label:nth-of-type(2){grid-column:1/-1}}
 .chk{display:flex;gap:10px;align-items:center;font-weight:600;cursor:pointer}
 .chk input{width:20px;height:20px;accent-color:var(--accent)}
 .mockwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;align-items:center}
@@ -201,7 +202,7 @@ ol.how,ul.how{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap
     <div class="num">3</div>
     <div class="body">
       <h2>Los tres cortes y sus porcentajes<span class="tag">Opcional</span></h2>
-      <p class="hint">Si tu Excel tiene una hoja por corte, elige de cada una la columna con la nota del corte. La página mostrará arriba el detalle del tercer corte y abajo el resumen con los tres cortes, sus porcentajes y la definitiva de la asignatura. La definitiva sale del acta en PDF (paso 4); si no la subes, se calcula con los porcentajes. Si solo tienes un corte, deja los otros en «no usar».</p>
+      <p class="hint">La página mostrará arriba el detalle del tercer corte y abajo el resumen con los tres cortes, sus porcentajes y la definitiva de la asignatura. Si subes el acta de UNIPAZ (paso 4) y trae los tres cortes, se usan esas notas oficiales y aquí solo ajustas los porcentajes. Si no, elige de cada hoja del Excel la columna con la nota del corte; sin acta, la definitiva se calcula con los porcentajes. Si solo tienes un corte, deja los otros en «no usar».</p>
       <div id="cutRows" class="cuts"></div>
       <div id="cutStat"></div>
     </div>
@@ -704,8 +705,8 @@ function pdfLines(items){
 }
 function parseActa(lines){
   const meta = { curso: '', conv: '', asig: '', grupo: '' };
-  const people = []; let expected = null;
-  const ROW = /^(\d{1,4})\s+(\d{5,13})\s+(.+?)(?:\s+(\d{1,3}[A-Za-z]{0,2})\s+([A-Za-z]{1,2})\s+(\S+))?$/;
+  const people = []; let expected = null, labels = null;
+  const ROW = /^(\d{1,4})\s+(\d{5,13})\s+(.+?)(?:\s+(\d{1,3}[A-Za-z]{0,2})\s+([A-Za-z]{1,2})((?:\s+\S+)+))?$/;
   for (let i = 0; i < lines.length; i++){
     const t = lines[i]; let m;
     if (!meta.curso && (m = /Curso acad[eé]mico\s*:\s*(\S+)/i.exec(t))) meta.curso = m[1];
@@ -717,17 +718,37 @@ function parseActa(lines){
     }
     if (!meta.grupo && (m = /Grupo\s*:\s*(.+)$/i.exec(t))) meta.grupo = m[1].replace(/\s*\(\s*\d+\s*\)\s*$/, '').trim();
     if ((m = /N[uú]mero de alumnos\s*:\s*(\d+)/i.exec(t))) expected = +m[1];
+    // Encabezado de la tabla: lo que sigue a "TIP." son los títulos de las columnas de notas.
+    if (!labels && /\bDNI\b/i.test(t) && /NOMBRE/i.test(t) && (m = /\bTIP\.?\s+(.+)$/i.exec(t))) labels = m[1].trim().split(/\s+/);
     const r = ROW.exec(t);
-    if (r && /[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(r[3])) people.push({ n: r[1], ced: r[2], name: r[3].trim(), nota: r[6] || '' });
+    if (r && /[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(r[3])) people.push({ n: r[1], ced: r[2], name: r[3].trim(), tail: r[6] ? r[6].trim().split(/\s+/) : [] });
   }
+  // ¿Qué columna es cada cosa? Por los títulos si se reconocen; si no, por la posición (varias columnas: tres cortes y la definitiva al final).
+  const n = people.reduce(function(a, p){ return Math.max(a, p.tail.length); }, 0);
+  const CRE = [/(^|\D)(1|primer\w*|1er|1ro)(\D|$)/i, /(^|\D)(2|segund\w*|2do)(\D|$)/i, /(^|\D)(3|tercer\w*|3er)(\D|$)/i];
+  let ci = [-1, -1, -1], fi = n ? n - 1 : -1, unk = false;
+  if (labels && labels.length === n && n > 1){
+    const f = labels.findIndex(function(l){ return /^(num|def\w*|final|total|nf|nota)\.?$/i.test(l); });
+    const c = CRE.map(function(re){ return labels.findIndex(function(l){ return re.test(l); }); });
+    if (c.every(function(x){ return x >= 0; }) && f >= 0 && new Set(c.concat([f])).size === 4){ ci = c; fi = f; }
+    else if (n >= 4){ ci = [0, 1, 2]; fi = n - 1; } else unk = true;
+  } else if (n >= 4){ ci = [0, 1, 2]; fi = n - 1; }
+  else if (n > 1) unk = true;
   // Notas: "4,5" pasa a número; si hay textos (NP, SD…) se dejan tal cual.
-  let dec = 0, comma = false;
+  let dec = 0, cdec = 0, comma = false;
+  function conv(tok, isCut){
+    if (tok === undefined) return '';
+    const m = /^(\d+)([.,](\d+))?$/.exec(tok);
+    if (!m) return tok;
+    if (m[2]){ if (m[2][0] === ',') comma = true; if (isCut) cdec = Math.max(cdec, m[3].length); else dec = Math.max(dec, m[3].length); }
+    return parseFloat(m[1] + (m[3] ? '.' + m[3] : ''));
+  }
   people.forEach(function(p){
-    const m = /^(\d+)([.,](\d+))?$/.exec(p.nota);
-    if (m){ if (m[2]){ if (m[2][0] === ',') comma = true; dec = Math.max(dec, m[3].length); } p.val = parseFloat(m[1] + (m[3] ? '.' + m[3] : '')); }
-    else p.val = p.nota;
+    p.nota = fi >= 0 ? (p.tail[fi] || '') : '';
+    p.val = fi >= 0 ? conv(p.tail[fi], false) : '';
+    p.cortes = ci[0] >= 0 ? ci.map(function(j){ return conv(p.tail[j], true); }) : null;
   });
-  return { meta: meta, people: people, expected: expected, dec: Math.min(dec, 2), comma: comma };
+  return { meta: meta, people: people, expected: expected, dec: Math.min(dec, 2), cdec: Math.min(cdec, 2), comma: comma, hasCuts: ci[0] >= 0, unk: unk, cols: n };
 }
 const SMALL_WORDS = ['a', 'al', 'con', 'de', 'del', 'e', 'el', 'en', 'la', 'las', 'los', 'o', 'para', 'por', 'u', 'un', 'una', 'y'];
 const ACCENTS = { analisis: 'análisis', economico: 'económico', economica: 'económica', economia: 'economía', matematica: 'matemática', matematicas: 'matemáticas', estadistica: 'estadística', politica: 'política', publica: 'pública', tecnica: 'técnica', logistica: 'logística', fisica: 'física', quimica: 'química', metodologia: 'metodología', psicologia: 'psicología', tecnologia: 'tecnología', informatica: 'informática', basica: 'básica', calculo: 'cálculo', algebra: 'álgebra', geometria: 'geometría', ingles: 'inglés', ingenieria: 'ingeniería', contabilidad: 'contabilidad', mercadeo: 'mercadeo', cultural: 'cultural', fundamentos: 'fundamentos', global: 'global', gerencia: 'gerencia', proyectos: 'proyectos' };
@@ -856,7 +877,7 @@ async function crearPack(people, meta, onProgress){
       }
       const a = parseActa(lines);
       if (!a.people.length){ showErr('No encontré estudiantes en ese PDF. Debe ser el acta con cédula, nombre y nota en texto. Si es una foto o un escaneo, no se puede leer.'); return; }
-      const aoa = [['N°', 'Cédula', 'Nombre', 'Nota definitiva']].concat(a.people.map(function(p){ return [p.n, p.ced, p.name, p.val]; }));
+      const aoa = [['N°', 'Cédula', 'Nombre'].concat(a.hasCuts ? ['Primer corte', 'Segundo corte', 'Tercer corte'] : [], ['Nota definitiva'])].concat(a.people.map(function(p){ return [p.n, p.ced, p.name].concat(a.hasCuts ? p.cortes : [], [p.val]); }));
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'Acta');
       S.wb = wb; S.file = file.name;
@@ -1014,36 +1035,41 @@ async function crearPack(people, meta, onProgress){
       sh.addEventListener('change', function(){ c.sheet = sh.value; c.col = defaultCol(sheetInfo(c.sheet)); renderCuts(); invalidate(); refresh(); });
       co.addEventListener('change', function(){ c.col = +co.value; invalidate(); refresh(); });
       w.addEventListener('input', function(){ c.w = parseFloat(w.value) || 0; invalidate(); refresh(); });
-      row.appendChild(t); row.appendChild(cell('Hoja', sh)); row.appendChild(cell('Columna con la nota del corte', co)); row.appendChild(cell('Peso (%)', w));
+      row.appendChild(t);
+      if (S.acta && S.acta.hasCuts) row.classList.add('fromacta'); else { row.appendChild(cell('Hoja', sh)); row.appendChild(cell('Columna con la nota del corte', co)); }
+      row.appendChild(cell('Peso (%)', w));
       box.appendChild(row);
     });
   }
   function buildSummary(res){
+    const dsel = $('#dec').value, sep = $('#sep').value;
+    const useActa = !!(S.acta && S.acta.hasCuts);
     const cuts = [];
-    S.cuts.forEach(function(c, i){
+    if (useActa){ S.cuts.forEach(function(c, i){ cuts.push({ i: i, w: c.w }); }); }
+    else S.cuts.forEach(function(c, i){
       const info = sheetInfo(c.sheet);
       if (info && c.col >= 0 && info.idCol >= 0) cuts.push({ i: i, w: c.w, info: info, col: c.col });
     });
     const all3 = cuts.length === 3;
     if (!res.people.length || !(S.acta || all3)) return null;
-    const sep = $('#sep').value, dsel = $('#dec').value;
-    const maps = cuts.map(function(c){ return { m: rawMap(c.info.rows, c.info.hr, c.info.idCol, c.col), d: colMode(c.info.rows, c.info.hr, c.col, dsel) }; });
+    const maps = useActa ? null : cuts.map(function(c){ return { m: rawMap(c.info.rows, c.info.hr, c.info.idCol, c.col), d: colMode(c.info.rows, c.info.hr, c.col, dsel) }; });
+    const cd = useActa ? (dsel === 'auto' ? S.acta.cdec : +dsel) : 0;
     const amap = new Map(); if (S.acta) S.acta.people.forEach(function(a){ amap.set(cleanCed(a.ced), a); });
     const fd = dsel === 'auto' ? (S.acta ? S.acta.dec : 1) : +dsel;
     const W = cuts.reduce(function(a, c){ return a + c.w; }, 0);
     const sum = { cfg: { t: 'Resumen de la asignatura', fl: 'Definitiva de la asignatura', ks: cuts.map(function(c){ return { l: CUT_NAMES[c.i], w: c.w }; }) },
-      cuts: cuts, W: W, usesActa: !!S.acta, missing: cuts.map(function(){ return 0; }), mism: [], noActa: [], noExcel: [], matched: 0, texto: 0 };
+      cuts: cuts, W: W, usesActa: !!S.acta, fromActaCuts: useActa, missing: cuts.map(function(){ return 0; }), mism: [], noActa: [], noExcel: [], matched: 0, texto: 0 };
     const have = new Set();
     res.people.forEach(function(p){
-      const raws = maps.map(function(x){ return x.m.get(p.ced); });
+      const a = amap.get(p.ced);
+      const raws = useActa ? cuts.map(function(c){ return a && a.cortes ? a.cortes[c.i] : undefined; }) : maps.map(function(x){ return x.m.get(p.ced); });
       raws.forEach(function(r, j){ if (r === undefined || isBlank(r)) sum.missing[j]++; });
-      const ks = raws.map(function(r, j){ return fmtVal(r === undefined ? '' : r, maps[j].d, sep); });
+      const ks = raws.map(function(r, j){ return fmtVal(r === undefined ? '' : r, useActa ? cd : maps[j].d, sep); });
       const nums = raws.map(toNum);
       let calc = null;
-      if (all3 && W > 0 && nums.every(function(n){ return isFinite(n); })) calc = nums.reduce(function(a, n, j){ return a + n * cuts[j].w; }, 0) / W;
+      if (all3 && W > 0 && nums.every(function(n){ return isFinite(n); })) calc = nums.reduce(function(acc, n, j){ return acc + n * cuts[j].w; }, 0) / W;
       let f = '—', fv = NaN;
       if (S.acta){
-        const a = amap.get(p.ced);
         if (a){
           have.add(p.ced); sum.matched++; f = fmtVal(a.val, fd, sep);
           if (typeof a.val === 'number'){ fv = a.val; if (calc !== null && Math.abs(parseFloat(fmtVal(calc, fd, '.')) - a.val) > 0.051) sum.mism.push((p.name || p.ced) + ' (cálculo ' + fmtVal(calc, fd, sep) + ', acta ' + f + ')'); }
@@ -1060,16 +1086,16 @@ async function crearPack(people, meta, onProgress){
     function msg(cls, t){ const d = document.createElement('div'); d.className = 'msg ' + cls; d.style.marginTop = '8px'; d.textContent = t; box.appendChild(d); }
     const sm = b.sum, n = b.res.people.length;
     const conf = S.cuts.filter(function(c){ const i = sheetInfo(c.sheet); return i && c.col >= 0; }).length;
-    if (!sm){ if (conf >= 2 && !S.acta) msg('warn', 'Para calcular la definitiva sin el acta se necesitan los tres cortes. Completa los que faltan o sube el acta en el paso 4.'); return; }
+    if (!sm){ if (S.acta && S.acta.unk) msg('warn', 'El acta tiene varias columnas de notas y no pude identificar los cortes. Se usa la última como definitiva.'); if (conf >= 2 && !S.acta) msg('warn', 'Para calcular la definitiva sin el acta se necesitan los tres cortes. Completa los que faltan o sube el acta en el paso 4.'); return; }
     const pesos = sm.cuts.map(function(c){ return c.w; });
-    msg('ok', 'Resumen listo: ' + sm.cuts.map(function(c){ return CUT_NAMES[c.i].toLowerCase() + ' ' + c.w + ' %'; }).join(', ') + '.' + (sm.usesActa ? '' : ' La definitiva se calcula con los porcentajes.'));
+    msg('ok', 'Resumen listo: ' + sm.cuts.map(function(c){ return CUT_NAMES[c.i].toLowerCase() + ' ' + c.w + ' %'; }).join(', ') + '.' + (sm.fromActaCuts ? ' Las notas de los tres cortes y la definitiva vienen del acta.' : sm.usesActa ? ' La definitiva viene del acta.' : ' La definitiva se calcula con los porcentajes.'));
     if (sm.cuts.length === 3 && Math.abs(sm.W - 100) > 0.01) msg('warn', 'Los porcentajes suman ' + sm.W + ' %, no 100 %. La definitiva se calcula dividiendo entre esa suma.');
     sm.missing.forEach(function(m, j){ if (m) msg('warn', m + (m === 1 ? ' estudiante no tiene' : ' estudiantes no tienen') + ' nota del ' + CUT_NAMES[sm.cuts[j].i].toLowerCase() + ' en esa hoja (verán «—»).'); });
     if (!sm.usesActa && sm.matched < n) msg('warn', (n - sm.matched) + (n - sm.matched === 1 ? ' estudiante no tiene los tres cortes y verá' : ' estudiantes no tienen los tres cortes y verán') + ' «—» en la definitiva.');
   }
   // ---- Acta en PDF y habilitación ----
   function clearActa(){
-    S.acta = null; $('#pdfA').value = ''; $('#actaClear').hidden = true; $('#actaStat').hidden = true; $('#actaWarns').textContent = '';
+    S.acta = null; $('#pdfA').value = ''; $('#actaClear').hidden = true; $('#actaStat').hidden = true; $('#actaWarns').textContent = ''; if (S.wb) renderCuts();
   }
   function onActa(file){
     const st = $('#actaStat');
@@ -1083,8 +1109,8 @@ async function crearPack(people, meta, onProgress){
       catch (e){ fail(e && e.message === 'lib' ? 'No se cargó el lector de PDF. Revisa tu conexión a Internet y vuelve a abrir la herramienta.' : 'No pude abrir ese PDF. Si está protegido con clave, descárgalo de nuevo desde el sistema.'); return; }
       const a = parseActa(lines);
       if (!a.people.length){ fail('No encontré estudiantes en ese PDF. Debe ser el acta con cédula, nombre y nota en texto. Si es una foto o un escaneo, no se puede leer.'); return; }
-      S.acta = { people: a.people, dec: a.dec, comma: a.comma, meta: a.meta, expected: a.expected, file: file.name };
-      $('#habOn').checked = true; $('#actaClear').hidden = false;
+      S.acta = { people: a.people, dec: a.dec, cdec: a.cdec, comma: a.comma, meta: a.meta, expected: a.expected, hasCuts: a.hasCuts, unk: a.unk, file: file.name };
+      $('#habOn').checked = true; $('#actaClear').hidden = false; renderCuts();
       if (a.meta.asig && (!$('#title').value || $('#title').dataset.auto === '1')){ $('#title').value = smartTitle(a.meta.asig); $('#title').dataset.auto = '1'; }
       const sub = [a.meta.curso ? 'Curso ' + a.meta.curso : '', a.meta.conv ? smartTitle(a.meta.conv) : '', a.meta.grupo].filter(Boolean).join(' · ');
       if (sub && (!$('#sub').value || $('#sub').dataset.auto === '1')){ $('#sub').value = sub; $('#sub').dataset.auto = '1'; }
@@ -1101,11 +1127,12 @@ async function crearPack(people, meta, onProgress){
     const r = b.sum, n = b.res.people.length;
     if (!r){ st.className = 'msg bad'; st.textContent = 'Primero carga estudiantes en el paso 2.'; return; }
     st.className = r.matched ? 'msg ok' : 'msg bad';
-    st.textContent = 'Acta con ' + S.acta.people.length + (S.acta.people.length === 1 ? ' estudiante' : ' estudiantes') + ' · ' + r.matched + ' de ' + n + ' del Excel tienen definitiva en el acta.';
+    st.textContent = 'Acta con ' + S.acta.people.length + (S.acta.people.length === 1 ? ' estudiante' : ' estudiantes') + (S.acta.hasCuts ? ', con los tres cortes y la definitiva' : ', solo con la definitiva') + ' · ' + r.matched + ' de ' + n + ' del Excel tienen definitiva en el acta.';
     if (!r.matched) warn('Ninguna cédula del acta coincide con la hoja del Excel. Revisa que sean del mismo grupo.');
     if (r.noActa.length && r.matched) warn('En el Excel pero no en el acta (verán «—» en la definitiva y sin aviso de habilitación): ' + some(r.noActa, 4) + '.');
     if (r.noExcel.length && r.matched) warn('En el acta pero no en el Excel (no podrán consultar): ' + some(r.noExcel, 4) + '.');
     if (r.texto) warn(r.texto + (r.texto === 1 ? ' estudiante tiene' : ' estudiantes tienen') + ' una nota que no es número en el acta (por ejemplo NP). No se les muestra aviso de habilitación; revisa su caso.');
+    if (S.acta.unk) warn('El acta tiene varias columnas de notas y no pude identificar los cortes; se usa la última como definitiva. Si los cortes están en otra hoja, elígelos en el paso 3.');
     if (r.mism.length) warn('Con los porcentajes el cálculo no coincide con el acta en: ' + some(r.mism, 3) + '. A los estudiantes se les muestra la nota del acta; revisa si el Excel está completo.');
     if (S.acta.expected !== null && S.acta.expected !== S.acta.people.length) warn('El acta dice ' + S.acta.expected + ' estudiantes y leí ' + S.acta.people.length + '.');
   }
