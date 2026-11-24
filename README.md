@@ -1,51 +1,45 @@
-# Notas por Cédula · Generador para docentes
+# Tablero Docente
 
-**Abrir la herramienta:** https://gaopyme-prog.github.io/generador-notas/
+> 🤖 **Aplicativo desarrollado con inteligencia artificial, disponible para su uso y mejora.** Propuestas y correcciones son bienvenidas (pestaña *Issues* o *Pull requests* del repositorio).
 
-## ¿Qué es?
-Una herramienta para docentes que convierte un **Excel de notas** y, si se quiere, el **PDF del acta de UNIPAZ** en una **página web de consulta**: cada estudiante escribe su número de cédula y ve **únicamente su propio resultado**. Con el acta, la página también le avisa si **debe habilitar** y le muestra la ruta de habilitación.
+Herramienta web para docentes: sube las **actas parciales (PDF)** del sistema académico, o tu propio **Excel** con las notas (hay una plantilla modelo descargable), y obtén automáticamente:
 
-## ¿Para qué sirve? (finalidad)
-Publicar las notas de un curso **de forma rápida y privada**, sin exponer las calificaciones de todo el grupo en una lista pública ni enviar mensajes uno por uno. El docente sube su archivo, genera la página y la comparte en el aula virtual (AVAPAZ) o en el grupo del curso. Sirve para cualquier asignatura y cualquier docente.
+- **Inasistencia (Art. 34):** % de faltas, faltas que le quedan a cada estudiante y quién pierde o está en riesgo (límite 15 %, o 25 % con justificación).
+- **Nota mínima** que necesita cada estudiante en el siguiente corte para aprobar (los pesos 30/30/40 se leen del acta).
+- **Alertas** (crítica, alta, atención) con el motivo, y un aviso listo para copiar y enviar al estudiante.
+- **Gráficos y estadística** del grupo: promedios, desviación, distribución, correlación faltas ↔ notas.
+- **Exportación** a Excel, CSV o PDF (imprimir).
 
-**Dirigido a:** docentes de cualquier programa o institución.
+## Privacidad
+Todo se procesa **en el navegador**. Los PDFs y los datos de los estudiantes no se suben a ningún servidor ni se guardan.
+**Nunca subas actas reales a este repositorio.**
 
-## Cómo protege los datos
-- El archivo de notas **no sale del computador** del docente: se lee dentro del navegador.
-- **Cada fila va cifrada:** la cédula de cada estudiante es la llave que abre solo su nota.
-- Opcionalmente se agrega una **clave del curso**, de modo que se necesitan cédula y clave.
-- Cada estudiante ve solo su resultado; no hay comparación con el grupo ni nombres de compañeros.
+## Fuentes de datos
+- **PDF** del acta parcial de UNIPAZ (se lee automáticamente).
+- **Excel / CSV** con la plantilla modelo (botón *Descargar plantilla de Excel*): hojas *Curso* (asignatura, grupo, pesos, intensidad horaria) y *Notas* (un estudiante por fila, con nota y faltas de cada corte). Permite 2, 3 o 4 cortes y varias asignaturas en una misma hoja.
 
-## ¿Cómo se usa? (7 pasos en pantalla)
-1. **Suba su Excel o el acta en PDF** (.xlsx, .xls, .csv o PDF del acta de UNIPAZ). Puede **probar con un ejemplo**.
-2. **Elija qué se muestra:** hoja, fila de títulos, columna de la cédula, columna del nombre (opcional), columnas visibles y columna destacada (por ejemplo, la definitiva).
-3. **Los tres cortes y sus porcentajes (opcional):** los porcentajes por defecto son 30 %, 30 % y 40 %, y se pueden cambiar. Si el acta de UNIPAZ (paso 4) trae los tres cortes, **se usan esas notas oficiales**; si no, elija de cada hoja del Excel la columna con la nota del corte. La página muestra **arriba** la definitiva y el detalle del tercer corte, y **abajo** un resumen con las notas de los tres cortes, la definitiva de la asignatura y si debe o no habilitar.
-4. **Acta en PDF y habilitación (opcional):** suba el acta en PDF. Las **notas de los tres cortes y la definitiva de la asignatura se toman del acta** (la cédula es la llave); si el acta no trae los cortes se usan las del Excel, y si no hay acta la definitiva se calcula con los porcentajes. Quien tenga **menos de la nota mínima** (por defecto 3,0) ve *Debes presentar habilitación* y una imagen con la ruta: calendario, valor a pagar y pasos; quien aprueba ve que no necesita habilitar. Se pueden editar la nota mínima, el calendario, el valor, los pasos y el mensaje final. La herramienta avisa si hay estudiantes que están en el Excel pero no en el acta (o al revés), si el cálculo con porcentajes no coincide con el acta, y si alguna nota del acta no es numérica (por ejemplo NP): a esos no se les muestra el aviso.
-5. **Observaciones del docente (opcional):** suba un Word con un título por estudiante y una tabla Ítem / Nota / Razón; cada estudiante verá su retroalimentación junto a sus notas.
-6. **Personalice la página:** título, subtítulo, docente, clave adicional, mensaje para los estudiantes, decimales y separador decimal.
-7. **Genere la página:** descargue el archivo `.html` (o copie el código) y **pruébela** antes de compartirla.
+## Uso
+Abre la dirección de GitHub Pages del repositorio, arrastra uno o varios PDFs y revisa las pestañas por asignatura.
+Antes de mostrar resultados, la herramienta **pregunta la intensidad horaria** de cada asignatura según su microcurrículo (**32, 48 o 64 horas**, u otra): no viene en el acta y de ella depende el máximo de faltas. La respuesta se recuerda en el navegador y siempre se pide confirmarla.
 
-## Cómo publicarla
-1. Cree un repositorio público en GitHub y suba el archivo generado con el nombre `index.html`.
-2. Active *Settings* › *Pages* (rama `main`, carpeta raíz).
-3. Pegue el enlace en el aula virtual o en el grupo del curso. (Google Drive no sirve: no muestra páginas HTML.)
-4. Cuando cambien las notas, genere la página de nuevo y reemplace el archivo publicado.
+## Reglas aplicadas
+Pierde la asignatura (0.0) quien supera el 15 % de inasistencia sin justificar; con enfermedad o fuerza mayor comprobada el límite es 25 %.
+Nota mínima = (aprobatoria − acumulado ponderado) ÷ peso de lo que falta, redondeada hacia arriba a un decimal.
 
-Ejemplo publicado con esta herramienta: https://gaopyme-prog.github.io/notas-especializacion/
+## Para desarrolladores
+Aplicación estática sin paso de compilación (`index.html`, `js/`, `css/`, `vendor/`). `js/parser.js` lee el PDF, `js/excel.js` el Excel y `js/analysis.js` calcula alertas y estadística. Las pruebas (`tests/`) usan `node --test`.
+Librerías incluidas en `vendor/`: pdf.js, Chart.js, SheetJS.
 
-## Archivos del repositorio
-- `index.html`: el generador.
+## Habilitación (tras el 3er corte)
 
-## Créditos
-Idea y dirección: **Omar Guerrero Avilés**, docente de UNIPAZ, Barrancabermeja. Desarrollado con apoyo de inteligencia artificial.
-Contacto: omar.guerreroav@unipaz.edu.co
+Cuando todos los cortes están calificados, aparece la sección **Perdieron la asignatura** (por faltas o por nota) con un mensaje listo para copiar que incluye las fechas de habilitación (por defecto 3 al 5 de diciembre) y los datos de pago. Si faltan valor, medio de pago o dónde enviar el comprobante, la herramienta los pide; se guardan solo en el navegador.
 
+## Habilitación (3er corte)
 
-## Instalar en el computador (Windows), sin usar GitHub
+Cuando todos los cortes están calificados, la herramienta muestra la lista **«Perdieron la asignatura»** (por faltas o por nota) con un mensaje listo para copiar. Los datos de habilitación (fechas, valor, medio de pago, pasos) vienen precargados y se pueden editar en «Datos de la habilitación»; se guardan solo en el navegador. Si falta el valor o el medio de pago, la herramienta lo advierte.
 
-1. Descarga **Instalar-Notas-por-Cedula.exe** desde [Releases](../../releases/latest).
-2. Ábrelo. Si Windows avisa "protegió su PC", pulsa *Más información > Ejecutar de todas formas* (el programa no está firmado).
-3. Se crea un acceso directo en el escritorio. Úsalo igual que la página web: sube el Excel y el acta, genera la página.
-4. Pulsa **Guardar y publicar**: guarda la carpeta en *Documentos > Notas por Cédula* y abre Netlify Drop, donde arrastras la carpeta para obtener tu enlace (cuenta gratis; sin cuenta el enlace se borra a la hora).
+## Créditos y soporte
 
-El instalador lo construye GitHub automáticamente (`.github/workflows/instalador.yml`) cada vez que se cambia la herramienta, y deja el instalador nuevo en Releases.
+Idea y dirección: **Omar Guerrero Avilés**, docente de tiempo completo de la Escuela de Ciencias, UNIPAZ (Instituto Universitario de la Paz). Desarrollado con apoyo de inteligencia artificial.
+
+Soporte: omar.guerreroav@unipaz.edu.co
